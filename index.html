@@ -1,0 +1,160 @@
+
+<!doctype html>
+<html>
+  <head>
+    <title>Thingy:52 Web Bluetooth</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="//c.oracleinfinity.io/acs/account/hsj8iasxuf/js/skeita/odc.js"></script>
+    <script src="//aframe.io/releases/0.9.2/aframe.min.js"></script>
+  </head>
+  <body>
+
+  	  <a-scene background="color: #FAFAFA">
+      <a-assets>
+        <img id="sky" src="//xrlab.ddns.net/assets/garage.jpg">
+        <img id="redwood" src="//xrlab.ddns.net/assets/redwood.jpg">        
+      </a-assets>
+      <a-sky src="#sky"></a-sky>
+
+      <a-entity geometry="primitive: circle; radius: 0.5" id="Temperature" position="-1.5 1.5 -4"></a-entity>
+      <a-entity geometry="primitive: circle; radius: 0.5" id="Pressure" position="1.5 1.5 -4"></a-entity>
+      <a-entity geometry="primitive: circle; radius: 0.5" id="Vibrations" position="0 1.5 -4"></a-entity>
+
+      <a-entity id="LETEXTE-TEMP" position="-1.5 1.5 -3.9" text="width: 5; color: #ffffff; value: 39.5 °C; align: center" background="color: #ffffff">
+      </a-entity>
+      <a-entity id="LETEXTE-PRESSURE" position="0 1.5 -3.9" text="width: 5; color: #ffffff; value: 1000 Pa; align: center" background="color: #ffffff">
+      </a-entity>
+      <a-entity id="LETEXTE-VIB" position="1.49859 1.5 -3.9" text="width: 5; color: #ffffff; value: 2500 Hz; align: center" background="color: #ffffff">
+      </a-entity>
+
+      <a-assets>
+        <a-asset-item id="tree-obj" src="//xrlab.ddns.net/WebAR/yamaha/bike.obj"></a-asset-item>
+        <a-asset-item id="tree-mtl" src="//xrlab.ddns.net/WebAR/yamaha/bike.mtl"></a-asset-item>
+      </a-assets>
+      <a-entity id="LABOX" obj-model="obj: #tree-obj; mtl: #tree-mtl" position="0.29 -3.3 -2.679" scale="0.06 0.06 0.06" data-children-count="0" animation__mouseenter="property: scale; to: 0.05 0.05 0.05; dur: 300; startEvents: mouseenter"
+        animation__mouseleave="property: scale; to: 0.06 0.06 0.06; dur: 300; startEvents: mouseleave"></a-entity> 
+      </a-entity>   
+
+      <!-- <a-box  position="0 0.75 -3" rotation="0 45 0" color="#4CC3D9" scale="1 0.5 1"  shadow animation__mouseenter="property: scale; to: 1.3 0.65 1.3; dur: 300; startEvents: mouseenter"
+        animation__mouseleave="property: scale; to: 1 0.5 1; dur: 300; startEvents: mouseleave">
+        	<a-cylinder id="LALED" position="0.315 0.457 -0.275" radius="0.1" height="0.1" color="red" shadow></a-cylinder>
+      </a-box> -->
+      <a-plane position="0 -1.4 -4" rotation="-90 0 0" width="4" height="4" src="#redwood" shadow></a-plane>
+      <a-entity id="LETEXTE" position="0 2.5 -5" text="width: 5; color: #000000; value: [OFFLINE];align: center">
+      </a-entity>
+      <a-entity id="LEBOUTON" position="0 3 -5" geometry="primitive: plane; width: 4; height: 0.4" material="color: black" text="color: white; align: center; value: [CLICK HERE TO CONNECT THE DEVICE]; width: 5" shadow animation__mouseenter="property: scale; to: 1.4 1.4 1; dur: 300; startEvents: mouseenter"
+        animation__mouseleave="property: scale; to: 1 1 1; dur: 300; startEvents: mouseleave">
+        </a-entity>
+      <a-camera>
+    		<a-cursor></a-cursor>
+  		</a-camera>
+      
+    </a-scene>
+
+    <script type="module">
+      
+      import Thingy from "index.js";
+
+      const thingy = new Thingy({logEnabled: true});
+
+      async function start(device) {
+        await device.connect();
+        await device.temperature.start();
+        await device.addEventListener("temperature", logTemperature);
+        await device.heading.start();
+        await device.addEventListener("heading", setHeading);
+        await device.pressure.start(); 
+        await device.addEventListener("pressure", logPressure);
+        await device.tap.start();
+        await device.addEventListener("tap", logVibration);
+
+
+        //await device.rotationmatrixorientation.start();
+        //await device.addEventListener("rotationmatrixorientation", rotateobject);
+		    //await thingy.pressure.start();
+		    //thingy.addEventListener("pressure", callback);
+        console.log("started properly");
+        thingy.led.write({"mode":1,"r":255,"g":0,"b":0});
+      }
+
+
+      function setHeading(data){
+
+      	const zone=document.querySelector("#LABOX");
+      	var larotation = data.detail.heading;
+		    zone.setAttribute("rotation", " 0 -" + larotation + " 0");   
+	    //console.log(larotation);
+      }
+
+      function logVibration(data){
+
+      var lecontenu = `${data.count.value} kHz`;
+      var lecontenudebase = "width: 5; wrapCount: 80; color: "   
+      var lacouleur = "#ffffff";
+      var lasuiteducontenudebase="; value: "
+      var lecontenufinal = lecontenudebase + lacouleur + lasuiteducontenudebase + lecontenu;
+      console.log(lecontenufinal);
+      const zone=document.querySelector("#LETEXTE-VIB");
+      zone.setAttribute("text",lecontenufinal);
+
+      }
+
+
+      function logPressure(data){
+
+      var lecontenu = `${data.detail.value}  ${data.detail.unit}`;
+      var lecontenudebase = "width: 5; wrapCount: 80; color: "   
+      var lacouleur = "#ffffff";
+      var lasuiteducontenudebase="; value: "
+      var lecontenufinal = lecontenudebase + lacouleur + lasuiteducontenudebase + lecontenu;
+
+      const zone=document.querySelector("#LETEXTE-PRESSURE");
+      zone.setAttribute("text",lecontenufinal);
+
+      }
+
+      //below function is not working for now
+      function rotateobject(data){
+
+      	const zone=document.querySelector("#LABOX");
+      	//var larotation = data.detail.heading;
+		//zone.setAttribute("rotation", " 0 -" + larotation + " 0");   
+	    //console.log(larotation);
+	    var larotation = data.detail;
+		zone.setAttribute("rotation", larotation);   
+	    //console.log(larotation);
+      }
+
+      function logTemperature(data) {
+
+      var lecontenu = `${data.detail.value} °C`; // `${data.detail.value} ${data.detail.unit}`
+	    var lecontenudebase = "width: 5; color: "   
+	    var lacouleur = "blue";
+	    var lasuiteducontenudebase="; value: [ONLINE]"
+	    var lecontenufinal = lecontenudebase + lacouleur + lasuiteducontenudebase;
+
+	    const zone=document.querySelector("#LETEXTE");
+		  zone.setAttribute("text",lecontenufinal);
+
+      var boxEl = document.querySelector('#LABOX');
+      boxEl.setAttribute('color', "black");
+
+      lecontenudebase = "width: 5; wrapCount: 80; align: center; color: "   
+      lacouleur = "#ffffff";
+      lasuiteducontenudebase="; value: "
+      lecontenufinal = lecontenudebase + lacouleur + lasuiteducontenudebase + lecontenu;
+
+      //console.log(lecontenu);
+      const zone2=document.querySelector("#LETEXTE-TEMP");
+      zone2.setAttribute("text",lecontenufinal);
+
+      }
+      
+     document.querySelector("#LEBOUTON").addEventListener("click", async () => {
+          start(thingy);
+      });
+
+  
+    </script>
+  </body>
+</html>
