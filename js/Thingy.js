@@ -1,5 +1,3 @@
-
-
   import AdvertisingParametersService from "./AdvertisingParametersService.js";
   import MicrophoneSensor from "./MicrophoneSensor.js";
   import MTUService from "./MTUService.js";

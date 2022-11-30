@@ -1,6 +1,4 @@
-
-
-  import FeatureOperations from "./FeatureOperations.js";
+ import FeatureOperations from "./FeatureOperations.js";
 
   class QuaternionOrientationSensor extends FeatureOperations {
     constructor(device) {
